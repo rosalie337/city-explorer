@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --detectOpenHandle",
     "start": "node app.js"
   },
   "repository": {
@@ -22,6 +22,7 @@
   "homepage": "https://github.com/rosalie337/city-explorer#readme",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "jest": "^25.1.0",
     "superagent": "^5.2.2",

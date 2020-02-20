@@ -40,54 +40,77 @@ app.get('/location', async(req, respond, next) => {
 
 const getWeatherData = async(lat, lng) => {
     const weather = await request.get(`https://api.darksky.net/forecast/${process.env.WEATHER_KEY}/${lat},${lng}`);
-    
+            
     return weather.body.daily.data.map (forecast => {
         return {
             forecast: forecast.summary,
             time: new Date(forecast.time * 1000),
-    }
-    }
-});
+        };
+    });
+};
 
 app.get('/weather', async(req, res, next) => {
     // use the lat and lng from earlier to get weather data for the selected area
     try {
-
         const latLng = await getWeatherData(lat, lng);
+        
+        res.json({ latLng });
     
-        res.json(latLng);
-    } catch(err) {
-        next(err)
+    
+    } catch (err) {
+        next(err);
     }
 });
 
-const getRestData = async (lat,lng) = {
-    const yelp = await request.get(`https://api.yelp.com/v3/businesses/search?location=${location}`);
-
-};
-
-app.get('/yelp', async (req, res. next) => {
-
+app.get('/yelp', async(req, res, next) => {
     try {
-        const yelpList = await request.getRestData(location)
+        const yelpList = await request
+            .get(`https://api.yelp.com/v3/businesses/search?term=restaurants&latitude=${lat}&longitude=${lng}`)
+            .set('Authorization', `Bearer ${process.env.YELP_API_KEY}`);
+        const yelp = yelpList.body.businesses.map (business => {
+            return {
+                name: business.name,
+                image: business.image_url,
+                price: business.price,
+                rating: business.rating,
+                url: business.url,
+            };
+        });
+    
+        res.json(yelp);
+    } catch (err) {
+        next(err);
     }
-})
+});
 
-// const getEventData = async(lat,lng) => {
-//     const event = await request.get(``);
+app.get('/eventful', async(req, res, next) => {
+    try {
+        const eventList = await request
+            .get(`http://api.eventful.com/json/events/search?app_key=${process.env.EVENTBRITE_API_KEY}&where=${lat},${lng}&within=25`);
+        const eventFul = eventList.body.events.map (event => {
+            return {
+                link: event.url,
+                name: event.title,
+                date: event.start_time,
+                summary: event.description,
 
-//         respond.json {
-//                 link: "https://www.eventbrite.com/Angular-Seattle/events/253595182/",
-//                 name: "Angular Seattle",
-//                 event_date:,
-//                 summary: event.summary,
-//         }
-// };
+            };
+        });
 
-const errorMessage = ('*', (req, res) => {
-    return {
-        status: 500,
-        responseText: "Sorry, something went wrong"
+        res.json(eventFul);
+    } catch (err) {
+        next(err);
+    }
+});
+
+app.get('/trails', async(req, res, next) => {
+    try { 
+        const URL = `https://www.hikingproject.com/data/get-trails?lat=${lat}&lon=${lng}&maxDistance=10&key=${process.env.TRAIL_API_KEY}`;
+        const trails = await request.get(URL);
+
+        res.json(trails.body);
+    } catch (err) {
+        next(err);
     }
 });
 
@@ -98,5 +121,5 @@ module.exports = {
 const port = process.env.PORT || 4001;
 app.listen(port, () => {
     console.log('listening on port', port);
-    }
-});
+}
+);
